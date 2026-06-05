@@ -94,7 +94,15 @@ def RegistroView(page):
             or not especialidad.value
         ):
 
-            print("Todos los campos son obligatorios")
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Todos los campos son obligatorios"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
             return
 
         try:
@@ -111,7 +119,11 @@ def RegistroView(page):
             )
 
             print("RESULTADO:", exito)
-            print("MENSAJE:", mensaje)
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(mensaje)
+            )
+
+            page.snack_bar.open = True
 
             if exito:
 

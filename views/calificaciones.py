@@ -1,17 +1,28 @@
 import flet as ft
 
 from models.calificacion_model import CalificacionModel
+from models.materia_model import MateriaModel
 
 def CalificacionesView(page):
+
 
     page.clean()
 
     usuario = page.usuario_actual
 
-    materia = ft.TextField(
+    materia = ft.Dropdown(
         label="Materia",
         width=350
     )
+
+    for m in MateriaModel.obtener_materias():
+
+        materia.options.append(
+            ft.dropdown.Option(
+                key=str(m["id_materia"]),
+                text=f'{m["nombre_materia"]} - Sem {m["semestre"]}'
+            )
+        )
 
     unidad1 = ft.TextField(
         label="Unidad 1",
@@ -34,46 +45,75 @@ def CalificacionesView(page):
 
         tabla.controls.clear()
 
-        registros = (
-            CalificacionModel
-            .obtener_por_usuario(
-                usuario["id_usuario"]
-            )
+        registros = CalificacionModel.obtener_por_usuario(
+            usuario["id_usuario"]
         )
 
         for r in registros:
 
-            estado = (
-                "APROBADO"
-                if r["promedio"] >= 6
-                else "REPROBADO"
-            )
+            aprobado = r["promedio"] >= 6
 
             tabla.controls.append(
                 ft.Container(
                     content=ft.Column(
                         [
                             ft.Text(
-                                f"Materia: {r['materia']}"
+                                f"Materia: {r['materia']}",
+                                weight=ft.FontWeight.BOLD
                             ),
+
+                            ft.Text(
+                                f"Unidad 1: {r['unidad1']}"
+                            ),
+
+                            ft.Text(
+                                f"Unidad 2: {r['unidad2']}"
+                            ),
+
+                            ft.Text(
+                                f"Unidad 3: {r['unidad3']}"
+                            ),
+
                             ft.Text(
                                 f"Promedio: {r['promedio']}"
                             ),
+
                             ft.Text(
-                                estado
+                                "APROBADO"
+                                if aprobado
+                                else "REPROBADO",
+                                color=(
+                                    ft.Colors.GREEN
+                                    if aprobado
+                                    else ft.Colors.RED
+                                )
                             )
                         ]
                     ),
                     bgcolor=(
-                        ft.Colors.GREEN_200
-                        if r["promedio"] >= 6
-                        else ft.Colors.RED_200
+                        ft.Colors.GREEN_100
+                        if aprobado
+                        else ft.Colors.RED_100
                     ),
-                    padding=10
+                    padding=15,
+                    border_radius=10
                 )
             )
 
     def guardar(e):
+
+        if not materia.value:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Debes seleccionar una materia"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
 
         try:
 
@@ -87,33 +127,53 @@ def CalificacionesView(page):
                 u3 < 0 or u3 > 10
             ):
 
-                print(
-                    "Las calificaciones deben estar entre 0 y 10"
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text(
+                        "Las calificaciones deben estar entre 0 y 10"
+                    )
                 )
+
+                page.snack_bar.open = True
+                page.update()
 
                 return
 
-            exito, mensaje = (
-                CalificacionModel.guardar(
-                    usuario["id_usuario"],
-                    materia.value,
-                    u1,
-                    u2,
-                    u3
-                )
+            exito, texto = CalificacionModel.guardar(
+                usuario["id_usuario"],
+                int(materia.value),
+                u1,
+                u2,
+                u3
             )
 
-            print(mensaje)
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(texto)
+            )
 
-            cargar_datos()
+            page.snack_bar.open = True
+
+            if exito:
+
+                materia.value = None
+                unidad1.value = ""
+                unidad2.value = ""
+                unidad3.value = ""
+
+                cargar_datos()
 
             page.update()
 
-        except:
+        except Exception:
 
-            print(
-                "Datos inválidos"
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Las unidades deben ser números válidos"
+                )
             )
+
+            page.snack_bar.open = True
+
+            page.update()
 
     cargar_datos()
 
@@ -126,28 +186,36 @@ def CalificacionesView(page):
                     weight=ft.FontWeight.BOLD
                 ),
 
+                ft.Text(
+                    f"Alumno: {usuario['nombre_completo']}"
+                ),
+
                 materia,
                 unidad1,
                 unidad2,
                 unidad3,
 
                 ft.ElevatedButton(
-                    "Guardar",
+                    "Guardar Calificación",
                     on_click=guardar
                 ),
 
                 ft.Divider(),
 
+                ft.Text(
+                    "Historial",
+                    size=22,
+                    weight=ft.FontWeight.BOLD
+                ),
+
                 tabla,
 
                 ft.ElevatedButton(
-                    "Volver",
+                    "Volver al Dashboard",
                     on_click=lambda e:
                     __import__(
                         "views.dashboard",
-                        fromlist=[
-                            "DashboardView"
-                        ]
+                        fromlist=["DashboardView"]
                     ).DashboardView(page)
                 )
             ],

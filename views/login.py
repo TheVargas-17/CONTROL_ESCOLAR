@@ -24,7 +24,15 @@ def LoginView(page):
 
         if not usuario.value or not contrasenia.value:
 
-            print("Campos vacíos")
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Debes llenar todos los campos"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
             return
 
         conexion = conectar_bd()
@@ -52,7 +60,14 @@ def LoginView(page):
 
         if not datos:
 
-            print("Usuario no encontrado")
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Usuario no encontrado"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
             return
 
         password_correcta = bcrypt.checkpw(
@@ -72,7 +87,14 @@ def LoginView(page):
 
         else:
 
-            print("Contraseña incorrecta")
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Contraseña incorrecta"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
 
     page.add(
         ft.Column(
