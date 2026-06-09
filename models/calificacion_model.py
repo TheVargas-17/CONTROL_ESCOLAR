@@ -1,7 +1,7 @@
 from database.conexion import conectar_bd
 
-
 class CalificacionModel:
+
 
     @staticmethod
     def guardar(
@@ -62,6 +62,88 @@ class CalificacionModel:
             conexion.close()
 
     @staticmethod
+    def actualizar(
+        id_calificacion,
+        unidad1,
+        unidad2,
+        unidad3
+    ):
+
+        conexion = conectar_bd()
+
+        cursor = conexion.cursor()
+
+        promedio = (
+            unidad1 +
+            unidad2 +
+            unidad3
+        ) / 3
+
+        try:
+
+            cursor.execute(
+                """
+                UPDATE calificaciones
+                SET
+                    unidad1=%s,
+                    unidad2=%s,
+                    unidad3=%s,
+                    promedio=%s
+                WHERE id_calificacion=%s
+                """,
+                (
+                    unidad1,
+                    unidad2,
+                    unidad3,
+                    promedio,
+                    id_calificacion
+                )
+            )
+
+            conexion.commit()
+
+            return True, "Calificación actualizada"
+
+        except Exception as e:
+
+            return False, str(e)
+
+        finally:
+
+            cursor.close()
+            conexion.close()
+
+    @staticmethod
+    def eliminar(id_calificacion):
+
+        conexion = conectar_bd()
+
+        cursor = conexion.cursor()
+
+        try:
+
+            cursor.execute(
+                """
+                DELETE FROM calificaciones
+                WHERE id_calificacion=%s
+                """,
+                (id_calificacion,)
+            )
+
+            conexion.commit()
+
+            return True, "Calificación eliminada"
+
+        except Exception as e:
+
+            return False, str(e)
+
+        finally:
+
+            cursor.close()
+            conexion.close()
+
+    @staticmethod
     def obtener_por_usuario(id_usuario):
 
         conexion = conectar_bd()
@@ -77,6 +159,7 @@ class CalificacionModel:
             INNER JOIN materias m
             ON c.id_materia = m.id_materia
             WHERE c.id_usuario = %s
+            ORDER BY c.id_calificacion DESC
             """,
             (id_usuario,)
         )
@@ -113,3 +196,4 @@ class CalificacionModel:
             return 0
 
         return round(float(resultado[0]), 2)
+

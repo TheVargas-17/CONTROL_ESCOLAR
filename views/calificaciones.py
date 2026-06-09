@@ -8,11 +8,14 @@ def CalificacionesView(page):
 
     page.clean()
 
+    page.bgcolor = ft.Colors.INDIGO_900
+
     usuario = page.usuario_actual
 
     materia = ft.Dropdown(
         label="Materia",
-        width=350
+        width=350,
+        color=ft.Colors.BLACK
     )
 
     for m in MateriaModel.obtener_materias():
@@ -26,17 +29,23 @@ def CalificacionesView(page):
 
     unidad1 = ft.TextField(
         label="Unidad 1",
-        width=350
+        width=350,
+        border_radius=15,
+        color=ft.Colors.BLACK
     )
 
     unidad2 = ft.TextField(
         label="Unidad 2",
-        width=350
+        width=350,
+        border_radius=15,
+        color=ft.Colors.BLACK
     )
 
     unidad3 = ft.TextField(
         label="Unidad 3",
-        width=350
+        width=350,
+        border_radius=15,
+        color=ft.Colors.BLACK
     )
 
     tabla = ft.Column()
@@ -55,27 +64,41 @@ def CalificacionesView(page):
 
             tabla.controls.append(
                 ft.Container(
+                    padding=15,
+                    border_radius=15,
+                    bgcolor=(
+                        ft.Colors.GREEN_100
+                        if aprobado
+                        else ft.Colors.RED_100
+                    ),
                     content=ft.Column(
                         [
                             ft.Text(
-                                f"Materia: {r['materia']}",
-                                weight=ft.FontWeight.BOLD
+                                r["nombre_materia"],
+                                size=18,
+                                weight=ft.FontWeight.BOLD,
+                                color=ft.Colors.BLACK
                             ),
 
                             ft.Text(
-                                f"Unidad 1: {r['unidad1']}"
+                                f"Unidad 1: {r['unidad1']}",
+                                color=ft.Colors.BLACK
                             ),
 
                             ft.Text(
-                                f"Unidad 2: {r['unidad2']}"
+                                f"Unidad 2: {r['unidad2']}",
+                                color=ft.Colors.BLACK
                             ),
 
                             ft.Text(
-                                f"Unidad 3: {r['unidad3']}"
+                                f"Unidad 3: {r['unidad3']}",
+                                color=ft.Colors.BLACK
                             ),
 
                             ft.Text(
-                                f"Promedio: {r['promedio']}"
+                                f"Promedio: {r['promedio']}",
+                                weight=ft.FontWeight.BOLD,
+                                color=ft.Colors.BLACK
                             ),
 
                             ft.Text(
@@ -86,17 +109,11 @@ def CalificacionesView(page):
                                     ft.Colors.GREEN
                                     if aprobado
                                     else ft.Colors.RED
-                                )
+                                ),
+                                weight=ft.FontWeight.BOLD
                             )
                         ]
-                    ),
-                    bgcolor=(
-                        ft.Colors.GREEN_100
-                        if aprobado
-                        else ft.Colors.RED_100
-                    ),
-                    padding=15,
-                    border_radius=10
+                    )
                 )
             )
 
@@ -138,7 +155,7 @@ def CalificacionesView(page):
 
                 return
 
-            exito, texto = CalificacionModel.guardar(
+            exito, mensaje = CalificacionModel.guardar(
                 usuario["id_usuario"],
                 int(materia.value),
                 u1,
@@ -147,7 +164,7 @@ def CalificacionesView(page):
             )
 
             page.snack_bar = ft.SnackBar(
-                content=ft.Text(texto)
+                content=ft.Text(mensaje)
             )
 
             page.snack_bar.open = True
@@ -172,23 +189,40 @@ def CalificacionesView(page):
             )
 
             page.snack_bar.open = True
-
             page.update()
 
     cargar_datos()
 
-    page.add(
-        ft.Column(
+    card = ft.Container(
+        width=700,
+        padding=40,
+        border_radius=25,
+        bgcolor=ft.Colors.WHITE,
+        shadow=ft.BoxShadow(
+            blur_radius=20,
+            spread_radius=2
+        ),
+        content=ft.Column(
             [
-                ft.Text(
-                    "CALIFICACIONES",
-                    size=30,
-                    weight=ft.FontWeight.BOLD
+                ft.Icon(
+                    ft.Icons.SCHOOL,
+                    size=90,
+                    color=ft.Colors.BLUE
                 ),
 
                 ft.Text(
-                    f"Alumno: {usuario['nombre_completo']}"
+                    "CALIFICACIONES",
+                    size=30,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.BLUE_800
                 ),
+
+                ft.Text(
+                    f"Alumno: {usuario['nombre_completo']}",
+                    color=ft.Colors.BLACK
+                ),
+
+                ft.Divider(),
 
                 materia,
                 unidad1,
@@ -197,21 +231,31 @@ def CalificacionesView(page):
 
                 ft.ElevatedButton(
                     "Guardar Calificación",
+                    width=350,
+                    height=50,
+                    bgcolor=ft.Colors.BLUE,
+                    color=ft.Colors.WHITE,
                     on_click=guardar
                 ),
 
                 ft.Divider(),
 
                 ft.Text(
-                    "Historial",
+                    "Historial de Calificaciones",
                     size=22,
-                    weight=ft.FontWeight.BOLD
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.BLACK
                 ),
 
                 tabla,
 
                 ft.ElevatedButton(
                     "Volver al Dashboard",
+                    width=300,
+                    height=50,
+                    bgcolor=ft.Colors.GREY_700,
+                    color=ft.Colors.WHITE,
+                    icon=ft.Icons.ARROW_BACK,
                     on_click=lambda e:
                     __import__(
                         "views.dashboard",
@@ -219,8 +263,19 @@ def CalificacionesView(page):
                     ).DashboardView(page)
                 )
             ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             scroll=ft.ScrollMode.AUTO
         )
     )
 
+    page.add(
+        ft.Row(
+            [
+                card
+            ],
+            alignment=ft.MainAxisAlignment.CENTER
+        )
+    )
+
     page.update()
+   

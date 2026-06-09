@@ -3,21 +3,32 @@ import bcrypt
 
 from database.conexion import conectar_bd
 
-def LoginView(page):
 
+def LoginView(page):
 
     page.clean()
 
+    page.bgcolor = ft.Colors.BLUE_900
     usuario = ft.TextField(
         label="Usuario",
-        width=350
+        width=350,
+        prefix_icon=ft.Icons.PERSON,
+        border_radius=15,
+        color=ft.Colors.BLACK,
+        label_style=ft.TextStyle(color=ft.Colors.BLACK),
+        cursor_color=ft.Colors.BLUE,
     )
 
     contrasenia = ft.TextField(
         label="Contraseña",
         password=True,
         can_reveal_password=True,
-        width=350
+        width=350,
+        prefix_icon=ft.Icons.LOCK,
+        border_radius=15,
+        color=ft.Colors.BLACK,
+        label_style=ft.TextStyle(color=ft.Colors.BLACK),
+        cursor_color=ft.Colors.BLUE,
     )
 
     def iniciar_sesion(e):
@@ -39,7 +50,15 @@ def LoginView(page):
 
         if not conexion:
 
-            print("Error de conexión")
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Error de conexión a la base de datos"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
             return
 
         cursor = conexion.cursor(dictionary=True)
@@ -68,6 +87,7 @@ def LoginView(page):
 
             page.snack_bar.open = True
             page.update()
+
             return
 
         password_correcta = bcrypt.checkpw(
@@ -76,8 +96,6 @@ def LoginView(page):
         )
 
         if password_correcta:
-
-            print("LOGIN CORRECTO")
 
             page.usuario_actual = datos
 
@@ -96,14 +114,37 @@ def LoginView(page):
             page.snack_bar.open = True
             page.update()
 
-    page.add(
-        ft.Column(
+    card = ft.Container(
+        width=500,
+        padding=40,
+        border_radius=25,
+        bgcolor=ft.Colors.WHITE,
+        shadow=ft.BoxShadow(
+            blur_radius=20,
+            spread_radius=2
+        ),
+        content=ft.Column(
             [
-                ft.Text(
-                    "INICIAR SESIÓN",
-                    size=30,
-                    weight=ft.FontWeight.BOLD
+                ft.Icon(
+                    ft.Icons.SCHOOL,
+                    size=90,
+                    color=ft.Colors.BLUE
                 ),
+
+                ft.Text(
+                    "CONTROL ESCOLAR",
+                    size=32,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.BLUE_800
+                ),
+
+                ft.Text(
+                    "Iniciar Sesión",
+                    size=18,
+                    color=ft.Colors.GREY_700
+                ),
+
+                ft.Divider(),
 
                 usuario,
 
@@ -111,15 +152,29 @@ def LoginView(page):
 
                 ft.ElevatedButton(
                     "Ingresar",
+                    width=350,
+                    height=50,
+                    bgcolor=ft.Colors.BLUE,
+                    color=ft.Colors.WHITE,
                     on_click=iniciar_sesion
                 ),
 
                 ft.TextButton(
-                "¿No tienes cuenta? Regístrate",
-                on_click=lambda e: page.mostrar_registro()
-            )
+                    "¿No tienes cuenta? Regístrate",
+                    on_click=lambda e:
+                    page.mostrar_registro()
+                )
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        )
+    )
+
+    page.add(
+        ft.Row(
+            [
+                card
+            ],
+            alignment=ft.MainAxisAlignment.CENTER
         )
     )
 
