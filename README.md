@@ -139,5 +139,6 @@ python main.py
 ## Autor
 
 Leonardo Vargas
+Jacobo Hernandez
 
 Proyecto desarrollado para la materia de Programación.
