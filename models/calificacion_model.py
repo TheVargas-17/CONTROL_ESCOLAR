@@ -14,6 +14,9 @@ class CalificacionModel:
 
         conexion = conectar_bd()
 
+        if not conexion:
+            return False, "Error de conexión a la base de datos"
+
         cursor = conexion.cursor()
 
         promedio = (
@@ -23,6 +26,28 @@ class CalificacionModel:
         ) / 3
 
         try:
+
+            cursor.execute(
+                """
+                SELECT id_calificacion
+                FROM calificaciones
+                WHERE id_usuario = %s
+                AND id_materia = %s
+                """,
+                (
+                    id_usuario,
+                    id_materia
+                )
+            )
+
+            existe = cursor.fetchone()
+
+            if existe:
+
+                return (
+                    False,
+                    "Ya existe una calificación registrada para esta materia"
+                )
 
             cursor.execute(
                 """
@@ -71,6 +96,9 @@ class CalificacionModel:
 
         conexion = conectar_bd()
 
+        if not conexion:
+            return False, "Error de conexión a la base de datos"
+
         cursor = conexion.cursor()
 
         promedio = (
@@ -118,6 +146,9 @@ class CalificacionModel:
 
         conexion = conectar_bd()
 
+        if not conexion:
+            return False, "Error de conexión a la base de datos"
+
         cursor = conexion.cursor()
 
         try:
@@ -148,6 +179,9 @@ class CalificacionModel:
 
         conexion = conectar_bd()
 
+        if not conexion:
+            return []
+
         cursor = conexion.cursor(dictionary=True)
 
         cursor.execute(
@@ -176,6 +210,9 @@ class CalificacionModel:
 
         conexion = conectar_bd()
 
+        if not conexion:
+            return 0
+
         cursor = conexion.cursor()
 
         cursor.execute(
@@ -196,4 +233,3 @@ class CalificacionModel:
             return 0
 
         return round(float(resultado[0]), 2)
-

@@ -4,8 +4,8 @@ from database.conexion import conectar_bd
 from models.usuario_model import UsuarioModel
 
 def RegistroView(page):
-
-
+    
+    
     page.clean()
 
     page.bgcolor = ft.Colors.BLUE_900
@@ -26,7 +26,7 @@ def RegistroView(page):
         border_radius=15,
         color=ft.Colors.BLACK,
         label_style=ft.TextStyle(color=ft.Colors.BLACK),
-        cursor_color=ft.Colors.BLUE,    
+        cursor_color=ft.Colors.BLUE,
     )
 
     matricula = ft.TextField(
@@ -35,7 +35,7 @@ def RegistroView(page):
         border_radius=15,
         color=ft.Colors.BLACK,
         label_style=ft.TextStyle(color=ft.Colors.BLACK),
-        cursor_color=ft.Colors.BLUE, 
+        cursor_color=ft.Colors.BLUE,
     )
 
     correo = ft.TextField(
@@ -45,7 +45,7 @@ def RegistroView(page):
         border_radius=15,
         color=ft.Colors.BLACK,
         label_style=ft.TextStyle(color=ft.Colors.BLACK),
-        cursor_color=ft.Colors.BLUE, 
+        cursor_color=ft.Colors.BLUE,
     )
 
     celular = ft.TextField(
@@ -55,7 +55,7 @@ def RegistroView(page):
         border_radius=15,
         color=ft.Colors.BLACK,
         label_style=ft.TextStyle(color=ft.Colors.BLACK),
-        cursor_color=ft.Colors.BLUE, 
+        cursor_color=ft.Colors.BLUE,
     )
 
     usuario = ft.TextField(
@@ -64,7 +64,7 @@ def RegistroView(page):
         border_radius=15,
         color=ft.Colors.BLACK,
         label_style=ft.TextStyle(color=ft.Colors.BLACK),
-        cursor_color=ft.Colors.BLUE, 
+        cursor_color=ft.Colors.BLUE,
     )
 
     contrasenia = ft.TextField(
@@ -76,7 +76,7 @@ def RegistroView(page):
         border_radius=15,
         color=ft.Colors.BLACK,
         label_style=ft.TextStyle(color=ft.Colors.BLACK),
-        cursor_color=ft.Colors.BLUE, 
+        cursor_color=ft.Colors.BLUE,
     )
 
     especialidad = ft.Dropdown(
@@ -113,6 +113,16 @@ def RegistroView(page):
         cursor.close()
         conexion.close()
 
+    else:
+
+        page.snack_bar = ft.SnackBar(
+            content=ft.Text(
+                "No se pudieron cargar las especialidades"
+            )
+        )
+
+        page.snack_bar.open = True
+
     def registrar(e):
 
         if (
@@ -137,11 +147,115 @@ def RegistroView(page):
 
             return
 
+        if len(nombre.value.strip()) < 5:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "El nombre debe tener al menos 5 caracteres"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if len(curp.value.strip()) != 18:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "La CURP debe tener exactamente 18 caracteres"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if not matricula.value.isdigit():
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "La matrícula solo debe contener números"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if "@" not in correo.value or "." not in correo.value:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Correo electrónico inválido"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if not celular.value.isdigit():
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "El celular solo debe contener números"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if len(celular.value) != 10:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "El celular debe tener 10 dígitos"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if len(usuario.value.strip()) < 4:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "El usuario debe tener al menos 4 caracteres"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        if len(contrasenia.value) < 8:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "La contraseña debe tener mínimo 8 caracteres"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
         exito, mensaje = UsuarioModel.registrar(
             nombre.value,
-            curp.value,
+            curp.value.upper(),
             matricula.value,
-            correo.value,
+            correo.value.lower(),
             celular.value,
             usuario.value,
             contrasenia.value,
@@ -153,6 +267,7 @@ def RegistroView(page):
         )
 
         page.snack_bar.open = True
+        page.update()
 
         if exito:
 
@@ -166,6 +281,7 @@ def RegistroView(page):
             especialidad.value = None
 
         page.update()
+        page.mostrar_login()
 
     card = ft.Container(
         width=550,
@@ -223,12 +339,9 @@ def RegistroView(page):
 
     page.add(
         ft.Row(
-            [
-                card
-            ],
+            [card],
             alignment=ft.MainAxisAlignment.CENTER
         )
     )
 
     page.update()
-

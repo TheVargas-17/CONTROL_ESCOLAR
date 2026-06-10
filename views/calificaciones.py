@@ -1,3 +1,4 @@
+
 import flet as ft
 
 from models.calificacion_model import CalificacionModel
@@ -5,12 +6,13 @@ from models.materia_model import MateriaModel
 
 def CalificacionesView(page):
 
-
     page.clean()
 
     page.bgcolor = ft.Colors.INDIGO_900
 
     usuario = page.usuario_actual
+
+    id_seleccionado = {"valor": None}
 
     materia = ft.Dropdown(
         label="Materia",
@@ -50,6 +52,16 @@ def CalificacionesView(page):
 
     tabla = ft.Column()
 
+    def seleccionar(registro):
+
+        id_seleccionado["valor"] = registro["id_calificacion"]
+
+        unidad1.value = str(registro["unidad1"])
+        unidad2.value = str(registro["unidad2"])
+        unidad3.value = str(registro["unidad3"])
+
+        page.update()
+
     def cargar_datos():
 
         tabla.controls.clear()
@@ -62,98 +74,69 @@ def CalificacionesView(page):
 
             aprobado = r["promedio"] >= 6
 
-            tabla.controls.append(
-                ft.Container(
-                    padding=15,
-                    border_radius=15,
-                    bgcolor=(
-                        ft.Colors.GREEN_100
-                        if aprobado
-                        else ft.Colors.RED_100
-                    ),
-                    content=ft.Column(
-                        [
-                            ft.Text(
-                                r["nombre_materia"],
-                                size=18,
-                                weight=ft.FontWeight.BOLD,
-                                color=ft.Colors.BLACK
-                            ),
+            tarjeta = ft.Container(
+                padding=15,
+                border_radius=15,
+                bgcolor=(
+                    ft.Colors.GREEN_100
+                    if aprobado
+                    else ft.Colors.RED_100
+                ),
+                on_click=lambda e, reg=r: seleccionar(reg),
+                content=ft.Column(
+                    [
+                        ft.Text(
+                            r["nombre_materia"],
+                            size=18,
+                            weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.BLACK
+                        ),
 
-                            ft.Text(
-                                f"Unidad 1: {r['unidad1']}",
-                                color=ft.Colors.BLACK
-                            ),
+                        ft.Text(
+                            f"Unidad 1: {r['unidad1']}",
+                            color=ft.Colors.BLACK
+                        ),
 
-                            ft.Text(
-                                f"Unidad 2: {r['unidad2']}",
-                                color=ft.Colors.BLACK
-                            ),
+                        ft.Text(
+                            f"Unidad 2: {r['unidad2']}",
+                            color=ft.Colors.BLACK
+                        ),
 
-                            ft.Text(
-                                f"Unidad 3: {r['unidad3']}",
-                                color=ft.Colors.BLACK
-                            ),
+                        ft.Text(
+                            f"Unidad 3: {r['unidad3']}",
+                            color=ft.Colors.BLACK
+                        ),
 
-                            ft.Text(
-                                f"Promedio: {r['promedio']}",
-                                weight=ft.FontWeight.BOLD,
-                                color=ft.Colors.BLACK
-                            ),
+                        ft.Text(
+                            f"Promedio: {r['promedio']}",
+                            weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.BLACK
+                        ),
 
-                            ft.Text(
-                                "APROBADO"
+                        ft.Text(
+                            "APROBADO"
+                            if aprobado
+                            else "REPROBADO",
+                            color=(
+                                ft.Colors.GREEN
                                 if aprobado
-                                else "REPROBADO",
-                                color=(
-                                    ft.Colors.GREEN
-                                    if aprobado
-                                    else ft.Colors.RED
-                                ),
-                                weight=ft.FontWeight.BOLD
-                            )
-                        ]
-                    )
+                                else ft.Colors.RED
+                            ),
+                            weight=ft.FontWeight.BOLD
+                        )
+                    ]
                 )
             )
+
+            tabla.controls.append(tarjeta)
 
     def guardar(e):
-
-        if not materia.value:
-
-            page.snack_bar = ft.SnackBar(
-                content=ft.Text(
-                    "Debes seleccionar una materia"
-                )
-            )
-
-            page.snack_bar.open = True
-            page.update()
-
-            return
 
         try:
 
             u1 = float(unidad1.value)
             u2 = float(unidad2.value)
             u3 = float(unidad3.value)
-
-            if (
-                u1 < 0 or u1 > 10 or
-                u2 < 0 or u2 > 10 or
-                u3 < 0 or u3 > 10
-            ):
-
-                page.snack_bar = ft.SnackBar(
-                    content=ft.Text(
-                        "Las calificaciones deben estar entre 0 y 10"
-                    )
-                )
-
-                page.snack_bar.open = True
-                page.update()
-
-                return
 
             exito, mensaje = CalificacionModel.guardar(
                 usuario["id_usuario"],
@@ -169,32 +152,92 @@ def CalificacionesView(page):
 
             page.snack_bar.open = True
 
-            if exito:
-
-                materia.value = None
-                unidad1.value = ""
-                unidad2.value = ""
-                unidad3.value = ""
-
-                cargar_datos()
-
+            cargar_datos()
             page.update()
 
-        except Exception:
+        except:
+
+            pass
+
+    def editar(e):
+
+        if not id_seleccionado["valor"]:
 
             page.snack_bar = ft.SnackBar(
                 content=ft.Text(
-                    "Las unidades deben ser números válidos"
+                    "Selecciona una tarjeta primero"
                 )
             )
 
             page.snack_bar.open = True
             page.update()
 
+            return
+
+        try:
+
+            u1 = float(unidad1.value)
+            u2 = float(unidad2.value)
+            u3 = float(unidad3.value)
+
+            exito, mensaje = CalificacionModel.actualizar(
+                id_seleccionado["valor"],
+                u1,
+                u2,
+                u3
+            )
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(mensaje)
+            )
+
+            page.snack_bar.open = True
+
+            cargar_datos()
+            page.update()
+
+        except:
+
+            pass
+
+    def eliminar(e):
+
+        if not id_seleccionado["valor"]:
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(
+                    "Selecciona una tarjeta primero"
+                )
+            )
+
+            page.snack_bar.open = True
+            page.update()
+
+            return
+
+        exito, mensaje = CalificacionModel.eliminar(
+            id_seleccionado["valor"]
+        )
+
+        page.snack_bar = ft.SnackBar(
+            content=ft.Text(mensaje)
+        )
+
+        page.snack_bar.open = True
+
+        id_seleccionado["valor"] = None
+
+        unidad1.value = ""
+        unidad2.value = ""
+        unidad3.value = ""
+
+        cargar_datos()
+        page.update()
+
     cargar_datos()
 
     card = ft.Container(
-        width=700,
+        width=750,
         padding=40,
         border_radius=25,
         bgcolor=ft.Colors.WHITE,
@@ -217,34 +260,43 @@ def CalificacionesView(page):
                     color=ft.Colors.BLUE_800
                 ),
 
-                ft.Text(
-                    f"Alumno: {usuario['nombre_completo']}",
-                    color=ft.Colors.BLACK
-                ),
-
-                ft.Divider(),
-
                 materia,
                 unidad1,
                 unidad2,
                 unidad3,
 
-                ft.ElevatedButton(
-                    "Guardar Calificación",
-                    width=350,
-                    height=50,
-                    bgcolor=ft.Colors.BLUE,
-                    color=ft.Colors.WHITE,
-                    on_click=guardar
+                ft.Row(
+                    [
+                        ft.ElevatedButton(
+                            "Guardar",
+                            bgcolor=ft.Colors.BLUE,
+                            color=ft.Colors.WHITE,
+                            on_click=guardar
+                        ),
+
+                        ft.ElevatedButton(
+                            "Editar",
+                            bgcolor=ft.Colors.ORANGE,
+                            color=ft.Colors.WHITE,
+                            on_click=editar
+                        ),
+
+                        ft.ElevatedButton(
+                            "Eliminar",
+                            bgcolor=ft.Colors.RED,
+                            color=ft.Colors.WHITE,
+                            on_click=eliminar
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER
                 ),
 
                 ft.Divider(),
 
                 ft.Text(
-                    "Historial de Calificaciones",
-                    size=22,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.BLACK
+                    "Selecciona una tarjeta para editar o eliminar",
+                    color=ft.Colors.BLACK,
+                    weight=ft.FontWeight.BOLD
                 ),
 
                 tabla,
@@ -252,7 +304,6 @@ def CalificacionesView(page):
                 ft.ElevatedButton(
                     "Volver al Dashboard",
                     width=300,
-                    height=50,
                     bgcolor=ft.Colors.GREY_700,
                     color=ft.Colors.WHITE,
                     icon=ft.Icons.ARROW_BACK,
@@ -270,12 +321,10 @@ def CalificacionesView(page):
 
     page.add(
         ft.Row(
-            [
-                card
-            ],
+            [card],
             alignment=ft.MainAxisAlignment.CENTER
         )
     )
 
     page.update()
-   
+

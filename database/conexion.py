@@ -8,9 +8,7 @@ def conectar_bd():
             password="",
             database="control_escolar"
         )
-
         return conexion
-
     except mysql.connector.Error as error:
-        print("Error al conectar:", error)
+        print(f"Error al conectar con MySQL: {error}")
         return None

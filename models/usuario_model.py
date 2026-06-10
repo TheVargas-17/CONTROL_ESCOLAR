@@ -1,7 +1,6 @@
 from database.conexion import conectar_bd
 import bcrypt
 
-
 class UsuarioModel:
 
     @staticmethod
@@ -19,20 +18,29 @@ class UsuarioModel:
         conexion = conectar_bd()
 
         if not conexion:
+            print("ERROR: No se pudo conectar a la BD")
             return False, "Error de conexión"
 
         cursor = conexion.cursor()
 
         try:
 
+            print("================================")
+            print("INICIANDO REGISTRO")
+            print("Usuario:", usuario)
+            print("Matrícula:", matricula)
+            print("CURP:", curp)
+            print("Correo:", correo)
+            print("================================")
+
             cursor.execute(
                 """
                 SELECT id_usuario
                 FROM usuarios
                 WHERE usuario = %s
-                   OR matricula = %s
-                   OR curp = %s
-                   OR correo = %s
+                OR matricula = %s
+                OR curp = %s
+                OR correo = %s
                 """,
                 (
                     usuario,
@@ -45,12 +53,17 @@ class UsuarioModel:
             existe = cursor.fetchone()
 
             if existe:
+                print("USUARIO YA EXISTE")
                 return False, "Usuario ya registrado"
+
+            print("Generando hash de contraseña...")
 
             password_hash = bcrypt.hashpw(
                 contrasenia.encode("utf-8"),
                 bcrypt.gensalt()
             )
+
+            print("Insertando usuario...")
 
             cursor.execute(
                 """
@@ -82,9 +95,17 @@ class UsuarioModel:
 
             conexion.commit()
 
+            print("USUARIO REGISTRADO CORRECTAMENTE")
+
             return True, "Usuario registrado"
 
         except Exception as e:
+
+            print("================================")
+            print("ERROR SQL")
+            print(type(e).__name__)
+            print(str(e))
+            print("================================")
 
             return False, str(e)
 
@@ -123,7 +144,9 @@ class UsuarioModel:
 
             return "Sin especialidad"
 
-        except Exception:
+        except Exception as e:
+
+            print("ERROR obtener_especialidad:", e)
 
             return "Sin especialidad"
 

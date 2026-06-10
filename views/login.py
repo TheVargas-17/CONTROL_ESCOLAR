@@ -33,81 +33,96 @@ def LoginView(page):
 
     def iniciar_sesion(e):
 
-        if not usuario.value or not contrasenia.value:
+        try:
 
-            page.snack_bar = ft.SnackBar(
-                content=ft.Text(
-                    "Debes llenar todos los campos"
+            if not usuario.value or not contrasenia.value:
+
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text(
+                        "Debes llenar todos los campos"
+                    )
                 )
+
+                page.snack_bar.open = True
+                page.update()
+
+                return
+
+            conexion = conectar_bd()
+
+            if not conexion:
+
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text(
+                        "Error de conexión a la base de datos"
+                    )
+                )
+
+                page.snack_bar.open = True
+                page.update()
+
+                return
+
+            cursor = conexion.cursor(dictionary=True)
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM usuarios
+                WHERE usuario = %s
+                """,
+                (usuario.value,)
             )
 
-            page.snack_bar.open = True
-            page.update()
+            datos = cursor.fetchone()
 
-            return
+            cursor.close()
+            conexion.close()
 
-        conexion = conectar_bd()
+            if not datos:
 
-        if not conexion:
-
-            page.snack_bar = ft.SnackBar(
-                content=ft.Text(
-                    "Error de conexión a la base de datos"
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text(
+                        "Usuario no encontrado"
+                    )
                 )
+
+                page.snack_bar.open = True
+                page.update()
+
+                return
+
+            password_correcta = bcrypt.checkpw(
+                contrasenia.value.encode("utf-8"),
+                datos["contrasenia"].encode("utf-8")
             )
 
-            page.snack_bar.open = True
-            page.update()
+            if password_correcta:
 
-            return
+                page.usuario_actual = datos
 
-        cursor = conexion.cursor(dictionary=True)
+                from views.dashboard import DashboardView
 
-        cursor.execute(
-            """
-            SELECT *
-            FROM usuarios
-            WHERE usuario = %s
-            """,
-            (usuario.value,)
-        )
+                DashboardView(page)
 
-        datos = cursor.fetchone()
+            else:
 
-        cursor.close()
-        conexion.close()
-
-        if not datos:
-
-            page.snack_bar = ft.SnackBar(
-                content=ft.Text(
-                    "Usuario no encontrado"
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text(
+                        "Contraseña incorrecta"
+                    )
                 )
-            )
 
-            page.snack_bar.open = True
-            page.update()
+                page.snack_bar.open = True
+                page.update()
 
-            return
+        except Exception as error:
 
-        password_correcta = bcrypt.checkpw(
-            contrasenia.value.encode("utf-8"),
-            datos["contrasenia"].encode("utf-8")
-        )
-
-        if password_correcta:
-
-            page.usuario_actual = datos
-
-            from views.dashboard import DashboardView
-
-            DashboardView(page)
-
-        else:
+            print(f"Error Login: {error}")
 
             page.snack_bar = ft.SnackBar(
                 content=ft.Text(
-                    "Contraseña incorrecta"
+                    "Ocurrió un error al iniciar sesión"
                 )
             )
 
